@@ -1,27 +1,30 @@
-import type { Component } from "solid-js";
+import { Component, createSignal, onMount } from "solid-js";
+import type { AppRouter } from "../server/app";
 
-import logo from "./logo.svg";
-import styles from "./App.module.css";
+import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
 
 const App: Component = () => {
-  return (
-    <div class={styles.App}>
-      <header class={styles.header}>
-        <img src={logo} class={styles.logo} alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          class={styles.link}
-          href="https://github.com/solidjs/solid"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn Solid
-        </a>
-      </header>
-    </div>
-  );
+  const [hello, setHello] = createSignal("");
+
+  const trpc = createTRPCProxyClient<AppRouter>({
+    links: [
+      httpBatchLink({
+        url: "http://localhost:3000/trpc",
+      }),
+    ],
+  });
+
+  onMount(async () => {
+    const data = await trpc.hello.query("world!");
+    console.log(data);
+
+    setHello(data);
+
+    const data2 = await trpc.example.query();
+    console.log(data2);
+  });
+
+  return <div>{hello()}</div>;
 };
 
 export default App;
