@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "start": "vite",
-    "dev": "tsx --watch src/server/app.ts",
+    "dev": "tsx watch ./src/server/app.ts",
     "build": "vite build",
     "serve": "vite preview"
   },
@@ -20,7 +20,10 @@
     "@solidjs/router": "^0.8.2",
     "@trpc/client": "^10.20.0",
     "@trpc/server": "^10.20.0",
+    "axios": "^1.3.6",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "query-string": "^8.1.0",
     "solid-js": "^1.6.10",
     "vite-express": "^0.5.3",
     "zod": "^3.21.4"

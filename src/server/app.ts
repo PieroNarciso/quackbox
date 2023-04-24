@@ -1,12 +1,22 @@
 import express from "express";
+import crypto from "crypto";
+import path from "path";
 import ViteExpress from "vite-express";
+import queryString from "query-string";
 import { initTRPC, inferAsyncReturnType } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { z } from "zod";
+import dotenv from "dotenv";
+import axios from "axios";
+import { AuthResponse, AuthResponseSchema } from "./spotify/types/token";
+
+dotenv.config({
+  path: path.resolve(__dirname, "../../.env"),
+});
 
 const createContext = ({
-  req,
-  res,
+  req: _req,
+  res: _res,
 }: trpcExpress.CreateExpressContextOptions) => ({});
 type Context = inferAsyncReturnType<typeof createContext>;
 
@@ -20,17 +30,13 @@ const appRouter = t.router({
 
   example: t.procedure.input(z.string().optional()).query(async (opts) => {
     const { input } = opts;
-    return `Hello ${input || 'equisde'}`;
+    return `Hello ${input || "equisde"}`;
   }),
 });
 
 export type AppRouter = typeof appRouter;
 
 const app = express();
-
-app.get("/hello", (_, res) => {
-  res.send("asdfj Hello World!");
-});
 
 app.use(
   "/trpc",
@@ -39,6 +45,82 @@ app.use(
     createContext,
   })
 );
+
+app.get("/login", (_, res) => {
+  console.log("login");
+  const state = crypto.randomUUID();
+  const scope = "user-read-private user-read-email";
+
+  res.redirect(
+    "https://accounts.spotify.com/authorize?" +
+      queryString.stringify({
+        response_type: "code",
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        scope,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        state,
+      })
+  );
+});
+
+app.get("/callback", async (req, res) => {
+  console.log("callback");
+  const { code, state } = req.query;
+  console.log(code, state);
+
+  if (state === null) {
+    res.redirect("/");
+  } else {
+    const authToken = Buffer.from(
+      `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+    ).toString("base64");
+
+    const response = await axios.post<AuthResponse>(
+      "https://accounts.spotify.com/api/token",
+      {
+        code: code,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        grant_type: "authorization_code",
+      },
+      {
+        headers: {
+          Authorization: `Basic ${authToken}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    const authData = AuthResponseSchema.parse(response.data);
+    console.log(authData);
+  }
+
+  res.redirect("/dashboard");
+});
+
+app.get("/refresh_token", async (req, res) => {
+  const { refresh_token } = req.query;
+
+  const authToken = Buffer.from(
+    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+  ).toString("base64");
+
+  const response = await axios.post<AuthResponse>(
+    "https://accounts.spotify.com/api/token",
+    {
+      grant_type: "refresh_token",
+      refresh_token: refresh_token,
+    },
+    {
+      headers: {
+        Authorization: `Basic ${authToken}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    }
+  );
+  const authData = AuthResponseSchema.parse(response.data);
+  console.log(authData);
+  res.redirect('/dashboard');
+});
 
 ViteExpress.listen(app, 3000, () => {
   console.log("Listening on http://localhost:3000");
