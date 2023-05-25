@@ -11,6 +11,9 @@ import axios from "axios";
 import { AuthResponseSchema } from "./spotify/types/token";
 import { Scope } from "./spotify/scopes";
 
+import RedisStore from "connect-redis";
+import { createClient } from "redis";
+
 dotenv.config({
   path: path.resolve(__dirname, "../../.env"),
 });
@@ -37,8 +40,17 @@ export type AppRouter = typeof appRouter;
 
 const app = express();
 
+const redisClient = createClient()
+redisClient.connect()
+
+const redisStore = new RedisStore({
+  client: redisClient,
+  prefix: "session:",
+})
+
 app.use(
   session({
+    store: redisStore,
     secret: "test",
     resave: false,
     saveUninitialized: true,
