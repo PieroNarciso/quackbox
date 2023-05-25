@@ -1,7 +1,5 @@
-import { Component, createSignal, onMount } from "solid-js";
-import type { AppRouter } from "../server/app";
+import { Component, onMount } from "solid-js";
 
-import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
 import { Route, Router, Routes } from "@solidjs/router";
 import AppHome from "./pages/AppHome/AppHome";
 import Default from "./pages/Default/Default";

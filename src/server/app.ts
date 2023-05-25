@@ -6,7 +6,6 @@ import ViteExpress from "vite-express";
 import queryString from "query-string";
 import { initTRPC, inferAsyncReturnType } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
-import { z } from "zod";
 import dotenv from "dotenv";
 import axios from "axios";
 import { AuthResponseSchema } from "./spotify/types/token";
@@ -25,18 +24,14 @@ const createContext = ({
 type Context = inferAsyncReturnType<typeof createContext>;
 
 export const t = initTRPC.context<Context>().create();
+export const router = t.router;
+export const publicProcedure = t.procedure;
 
-const appRouter = t.router({
-  hello: t.procedure.input(z.string()).query(async (opts) => {
-    const { input } = opts;
-    return `Hello ${input}`;
-  }),
+// Routes
+import { spotifyApi } from "./axios";
+import { createUserRoutes } from "./spotify/user/routes";
 
-  example: t.procedure.input(z.string().optional()).query(async (opts) => {
-    const { input } = opts;
-    return `Hello ${input || "equisde"}`;
-  }),
-});
+const appRouter = t.mergeRouters(createUserRoutes(router, spotifyApi));
 
 export type AppRouter = typeof appRouter;
 
@@ -59,9 +54,8 @@ app.use(
 );
 
 app.get("/login", (_, res) => {
-  console.log("login");
   const state = crypto.randomUUID();
-  const scopes: Scope[] = ['user-library-read', 'user-top-read']
+  const scopes: Scope[] = ["user-library-read", "user-top-read"];
 
   res.redirect(
     "https://accounts.spotify.com/authorize?" +
@@ -76,9 +70,7 @@ app.get("/login", (_, res) => {
 });
 
 app.get("/callback", async (req, res) => {
-  console.log("callback");
   const { code, state } = req.query;
-  console.log(code, state);
 
   if (state === null) {
     res.redirect("/");
