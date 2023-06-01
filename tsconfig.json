@@ -11,6 +11,12 @@
     "types": ["vite/client"],
     "typeRoots": ["./types"],
     "noEmit": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["./src/client/components/*"],
+      "@client/*": ["./src/client/*"],
+      "@server/*": ["./src/server/*"]
+    }
   }
 }
