@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { AxiosInstance } from "axios";
 import { z } from "zod";
 import { router, publicProcedure } from "../../app";
+import { UserProfileSchema } from "./schemas/profile";
 import { TopItemsResponseSchema } from "./schemas/top-items";
 
 export function createUserRoutes(r: typeof router, api: AxiosInstance) {
@@ -10,6 +11,23 @@ export function createUserRoutes(r: typeof router, api: AxiosInstance) {
       return {
         active: ctx.session.user ? true : false,
       };
+    }),
+
+    userProfile: publicProcedure.query(async ({ ctx }) => {
+      const res = await api.get<unknown>("/me", {
+        headers: {
+          Authorization: `Bearer ${ctx.session?.user?.accessToken}`,
+        },
+      });
+      const result = UserProfileSchema.safeParse(res.data);
+      if (!result.success) {
+        console.log(result.error.format());
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to respond with user profile",
+        });
+      }
+      return result.data;
     }),
 
     userTopItems: publicProcedure

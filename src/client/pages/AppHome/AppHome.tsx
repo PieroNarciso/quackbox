@@ -1,7 +1,7 @@
 import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "../../../server/app";
 import { Component, createSignal, For } from "solid-js";
-import { TopItems } from "../../../server/spotify/user/schemas/top-items";
+import { TopItems } from "@server/spotify/user/schemas/top-items";
 
 const AppHome: Component = () => {
   const [tracks, setTracks] = createSignal<TopItems>([]);
