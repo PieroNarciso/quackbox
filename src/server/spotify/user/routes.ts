@@ -6,6 +6,12 @@ import { TopItemsResponseSchema } from "./schemas/top-items";
 
 export function createUserRoutes(r: typeof router, api: AxiosInstance) {
   return r({
+    userSessionStatus: publicProcedure.query(async ({ ctx }) => {
+      return {
+        active: ctx.session.user ? true : false,
+      };
+    }),
+
     userTopItems: publicProcedure
       .input(
         z.object({
