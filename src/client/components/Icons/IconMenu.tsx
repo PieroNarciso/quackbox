@@ -2,7 +2,7 @@ import type { Component, JSX } from "solid-js";
 
 type Props = JSX.SVGElementTags["svg"];
 
-const IconSpotify: Component<Props> = (props) => {
+const IconMenu: Component<Props> = (props) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" {...props}>
       <title>menu</title>
@@ -11,4 +11,4 @@ const IconSpotify: Component<Props> = (props) => {
   );
 };
 
-export default IconSpotify;
+export default IconMenu;

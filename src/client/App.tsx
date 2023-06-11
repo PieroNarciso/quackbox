@@ -16,6 +16,7 @@ const App: Component = () => {
   onMount(async () => {
     const session = await trpc.userSessionStatus.query();
     if (session.active) navigate("/app", { replace: true });
+    navigate("/", { replace: true });
   });
 
   return (

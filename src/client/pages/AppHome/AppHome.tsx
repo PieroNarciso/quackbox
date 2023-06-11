@@ -1,6 +1,6 @@
 import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "../../../server/app";
-import { Component, createSignal, For } from "solid-js";
+import { Component, createSignal, For, onMount } from "solid-js";
 import { TopItems } from "@server/spotify/user/schemas/top-items";
 
 const AppHome: Component = () => {
@@ -19,14 +19,23 @@ const AppHome: Component = () => {
     setTracks(response.items);
   };
 
+  const getTrack = async (id: string) => {
+    // const track = await trpc.getTrack.query(id);
+    // console.log(track);
+  };
+
+  onMount(() => {
+    getTopTracks();
+  });
+
   return (
-    <div>
-      <button onclick={getTopTracks}>Tracks</button>
-      <For each={tracks()}>{(track) => (
-        <div>
-          <img src={track.album.images[0].url} />
-        </div>
-      )}
+    <div class="grid grid-cols-2 gap-x-2 gap-y-2">
+      <For each={tracks()}>
+        {(track) => (
+          <div onmouseover={() => getTrack(track.id)}>
+            <img src={track.album.images[0].url} />
+          </div>
+        )}
       </For>
     </div>
   );

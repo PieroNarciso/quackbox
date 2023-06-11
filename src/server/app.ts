@@ -33,20 +33,24 @@ export const publicProcedure = t.procedure;
 // Routes
 import { spotifyApi } from "./axios";
 import { createUserRoutes } from "./spotify/user/routes";
+import { createTrackRoutes } from "./spotify/tracks/routes";
 
-const appRouter = t.mergeRouters(createUserRoutes(router, spotifyApi));
+const appRouter = t.mergeRouters(
+  createUserRoutes(router, spotifyApi),
+  createTrackRoutes(router, spotifyApi)
+);
 
 export type AppRouter = typeof appRouter;
 
 const app = express();
 
-const redisClient = createClient()
-redisClient.connect()
+const redisClient = createClient();
+redisClient.connect();
 
 const redisStore = new RedisStore({
   client: redisClient,
   prefix: "session:",
-})
+});
 
 app.use(
   session({
@@ -67,7 +71,11 @@ app.use(
 
 app.get("/login", (_, res) => {
   const state = crypto.randomUUID();
-  const scopes: Scope[] = ["user-library-read", "user-top-read"];
+  const scopes: Scope[] = [
+    "user-library-read",
+    "user-top-read",
+    "user-read-playback-state",
+  ];
 
   res.redirect(
     "https://accounts.spotify.com/authorize?" +
