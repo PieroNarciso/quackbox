@@ -2,7 +2,7 @@ import { Outlet } from "@solidjs/router";
 import { Component, createSignal } from "solid-js";
 import IconMenu from "@components/Icons/IconMenu";
 import Drawer from "./Drawer";
-import Player from "./Player";
+import MainPlayer from "./MainPlayer/MainPlayer";
 
 const Layout: Component = () => {
   const [isOpen, setIsOpen] = createSignal(false);
@@ -23,7 +23,7 @@ const Layout: Component = () => {
       <section class="container">
         <Outlet />
       </section>
-      <Player />
+      <MainPlayer />
     </div>
   );
 };

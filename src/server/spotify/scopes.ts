@@ -22,6 +22,9 @@ export const spotifyScopes = [
   // Library
   "user-library-modify",
   "user-library-read",
-] as const
 
-export type Scope = typeof spotifyScopes[number]
+  // Streaming
+  "streaming",
+] as const;
+
+export type Scope = (typeof spotifyScopes)[number];

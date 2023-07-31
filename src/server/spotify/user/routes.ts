@@ -10,6 +10,7 @@ export function createUserRoutes(r: typeof router, api: AxiosInstance) {
     userSessionStatus: publicProcedure.query(async ({ ctx }) => {
       return {
         active: ctx.session.user ? true : false,
+        oauth: ctx.session.user?.accessToken
       };
     }),
 

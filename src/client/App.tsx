@@ -6,6 +6,7 @@ import Default from "./pages/Default/Default";
 import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
 import { AppRouter } from "@server/app";
 import Layout from "@components/Layout";
+import { userStore } from "./store";
 
 const App: Component = () => {
   const navigate = useNavigate();
@@ -15,8 +16,10 @@ const App: Component = () => {
 
   onMount(async () => {
     const session = await trpc.userSessionStatus.query();
+    const [_, setUser] = userStore;
+    setUser({ oauthToken: session.oauth });
+    console.log(session)
     if (session.active) navigate("/app", { replace: true });
-    navigate("/", { replace: true });
   });
 
   return (

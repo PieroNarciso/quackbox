@@ -34,10 +34,12 @@ export const publicProcedure = t.procedure;
 import { spotifyApi } from "./axios";
 import { createUserRoutes } from "./spotify/user/routes";
 import { createTrackRoutes } from "./spotify/tracks/routes";
+import { createPlayerStateRoutes } from "./spotify/player/routes";
 
 const appRouter = t.mergeRouters(
   createUserRoutes(router, spotifyApi),
-  createTrackRoutes(router, spotifyApi)
+  createTrackRoutes(router, spotifyApi),
+  createPlayerStateRoutes(router, spotifyApi),
 );
 
 export type AppRouter = typeof appRouter;
@@ -58,7 +60,7 @@ app.use(
     secret: "test",
     resave: false,
     saveUninitialized: true,
-  })
+  }),
 );
 
 app.use(
@@ -66,7 +68,7 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext,
-  })
+  }),
 );
 
 app.get("/login", (_, res) => {
@@ -75,6 +77,7 @@ app.get("/login", (_, res) => {
     "user-library-read",
     "user-top-read",
     "user-read-playback-state",
+    "streaming",
   ];
 
   res.redirect(
@@ -85,7 +88,7 @@ app.get("/login", (_, res) => {
       scope: scopes.join(" "),
       redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
       state,
-    })
+    }),
   );
 });
 
@@ -96,7 +99,7 @@ app.get("/callback", async (req, res) => {
     res.redirect("/");
   } else {
     const authToken = Buffer.from(
-      `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+      `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`,
     ).toString("base64");
 
     const response = await axios.post<unknown>(
@@ -111,7 +114,7 @@ app.get("/callback", async (req, res) => {
           Authorization: `Basic ${authToken}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
-      }
+      },
     );
 
     const authData = AuthResponseSchema.parse(response.data);
@@ -124,7 +127,6 @@ app.get("/callback", async (req, res) => {
     };
     return res.redirect("/app");
   }
-
   return res.redirect("/");
 });
 
@@ -132,7 +134,7 @@ app.get("/refresh_token", async (req, res) => {
   const { refresh_token } = req.query;
 
   const authToken = Buffer.from(
-    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`,
   ).toString("base64");
 
   const response = await axios.post<unknown>(
@@ -146,7 +148,7 @@ app.get("/refresh_token", async (req, res) => {
         Authorization: `Basic ${authToken}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
   const authData = AuthResponseSchema.parse(response.data);
   req.session.user = {
