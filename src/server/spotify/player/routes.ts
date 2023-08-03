@@ -19,17 +19,23 @@ export function createPlayerStateRoutes(r: typeof router, api: AxiosInstance) {
     transferPlaypack: loggedInProcedure
       .input(z.object({ deviceIds: z.array(z.string()).length(1) }))
       .mutation(async ({ ctx, input }) => {
-        const response = await api.put<unknown>(
-          "/me/player",
-          { device_ids: input.deviceIds, play: false },
-          {
-            headers: {
-              Authorization: `Bearer ${ctx.user.accessToken}`,
+        console.log("input", input);
+        try {
+          const response = await api.put<unknown>(
+            "/me/player",
+            { device_ids: input.deviceIds, play: false },
+            {
+              headers: {
+                Authorization: `Bearer ${ctx.user.accessToken}`,
+              },
             },
-          },
-        );
-        if (response.status === 204) return { ok: true };
-        return { ok: false };
+          );
+          if (response.status === HttpStatusCode.NoContent) return { ok: true };
+          return { ok: false };
+        } catch (error) {
+          console.log(error);
+          return { ok: false };
+        }
       }),
 
     getAvailableDevices: loggedInProcedure.query(async ({ ctx }) => {
@@ -38,12 +44,13 @@ export function createPlayerStateRoutes(r: typeof router, api: AxiosInstance) {
           Authorization: `Bearer ${ctx.user.accessToken}`,
         },
       });
-      if (response.status !== HttpStatusCode.Ok) throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Failed to get available devices"
-      })
+      if (response.status !== HttpStatusCode.Ok)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Failed to get available devices",
+        });
 
       return UserDevicesSchema.parse(response.data);
-    })
+    }),
   });
 }

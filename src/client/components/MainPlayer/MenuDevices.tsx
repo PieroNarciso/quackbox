@@ -4,21 +4,21 @@ import {
   MenuItem,
   MenuPositioner,
   MenuTrigger,
-  Pressable,
 } from "@ark-ui/solid";
+import IconButton from "@components/Button/IconButton";
 import IconMultiSpeaker from "@components/Icons/IconMultiSpeaker";
 import Tooltip from "@components/Tooltip";
 import { AppRouter } from "@server/app";
-import { UserDevices } from "@server/spotify/player/schemas/device";
 import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
 import { Component, createSignal, For, onMount } from "solid-js";
 import { Portal } from "solid-js/web";
+import { FilteredDevice } from "./MainPlayer";
 
-type FilteredDevice = Omit<UserDevices["devices"][0], "id"> & { id: string };
+type Props = {
+  devices: FilteredDevice[];
+}
 
-const MenuDevices: Component = () => {
-  const [devices, setDevices] = createSignal<FilteredDevice[]>([]);
-
+const MenuDevices: Component<Props> = (props) => {
   const trpc = createTRPCProxyClient<AppRouter>({
     links: [httpBatchLink({ url: "/trpc" })],
   });
@@ -29,30 +29,25 @@ const MenuDevices: Component = () => {
     });
   };
 
-  onMount(async () => {
-    const { devices } = await trpc.getAvailableDevices.query();
-    const devicesWithId = devices.filter(
-      (device): device is FilteredDevice => device.id !== null,
-    );
-    setDevices(devicesWithId);
-  });
-
   return (
     <Menu onSelect={(id) => transferPlayback(id.value)}>
-      <MenuTrigger>
-        <Tooltip content="Tooltipo jasdjklfa">
-          <button class="rounded-full" type="button">
+      <MenuTrigger class="focus:outline-none">
+        <Tooltip content="Change devices">
+          <IconButton>
             <IconMultiSpeaker class="h-6 w-6 text-white fill-current" />
-          </button>
+          </IconButton>
         </Tooltip>
       </MenuTrigger>
       <Portal>
-        <MenuPositioner>
-          <MenuContent>
-            <For each={devices()} fallback={<div>Loading...</div>}>
+        <MenuPositioner class="z-20 bg-gray-700 rounded overflow-hidden">
+          <MenuContent class="focus:outline-none">
+            <For each={props.devices} fallback={<div>Loading...</div>}>
               {(device) => (
                 <MenuItem id={device.id}>
-                  <button onclick={() => transferPlayback(device.id!)}>
+                  <button
+                    class="text-white hover:bg-gray-600 w-full py-2 px-3 focus:outline-none"
+                    onclick={() => transferPlayback(device.id)}
+                  >
                     {device.name}
                   </button>
                 </MenuItem>

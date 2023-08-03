@@ -16,7 +16,7 @@ const Tooltip: ParentComponent<Props> = (props) => {
     <ArkTooltip>
       <TooltipTrigger>{props.children}</TooltipTrigger>
       <Portal>
-        <TooltipPositioner>
+        <TooltipPositioner class="px-3 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg shadow-sm z-50">
           <TooltipContent>{props.content}</TooltipContent>
         </TooltipPositioner>
       </Portal>
