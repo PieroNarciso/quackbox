@@ -1,23 +1,22 @@
 import { TRPCError } from "@trpc/server";
 import { AxiosInstance } from "axios";
 import { z } from "zod";
-import { router, publicProcedure } from "../../app";
+import { router, loggedInProcedure } from "../../app";
 import { UserProfileSchema } from "./schemas/profile";
 import { TopItemsResponseSchema } from "./schemas/top-items";
 
 export function createUserRoutes(r: typeof router, api: AxiosInstance) {
   return r({
-    userSessionStatus: publicProcedure.query(async ({ ctx }) => {
+    userSessionStatus: loggedInProcedure.query(async ({ ctx }) => {
       return {
-        active: ctx.session.user ? true : false,
-        oauth: ctx.session.user?.accessToken
+        oauth: ctx.user.accessToken,
       };
     }),
 
-    userProfile: publicProcedure.query(async ({ ctx }) => {
+    userProfile: loggedInProcedure.query(async ({ ctx }) => {
       const res = await api.get<unknown>("/me", {
         headers: {
-          Authorization: `Bearer ${ctx.session?.user?.accessToken}`,
+          Authorization: `Bearer ${ctx.user.accessToken}`,
         },
       });
       const result = UserProfileSchema.safeParse(res.data);
@@ -31,7 +30,7 @@ export function createUserRoutes(r: typeof router, api: AxiosInstance) {
       return result.data;
     }),
 
-    userTopItems: publicProcedure
+    userTopItems: loggedInProcedure
       .input(
         z.object({
           type: z.enum(["artists", "tracks"]),
@@ -45,7 +44,7 @@ export function createUserRoutes(r: typeof router, api: AxiosInstance) {
       .query(async ({ input, ctx }) => {
         const res = await api.get<unknown>(`/me/top/${input.type}`, {
           headers: {
-            Authorization: `Bearer ${ctx.session?.user?.accessToken}`,
+            Authorization: `Bearer ${ctx.user.accessToken}`,
           },
           params: {
             ...input,

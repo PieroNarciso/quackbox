@@ -20,15 +20,24 @@ dotenv.config({
 
 const createContext = ({
   req,
-  res: _res,
+  res,
 }: trpcExpress.CreateExpressContextOptions) => ({
   session: req.session,
+  res,
 });
 type Context = inferAsyncReturnType<typeof createContext>;
 
 export const t = initTRPC.context<Context>().create();
 export const router = t.router;
+export const middleware = t.middleware;
 export const publicProcedure = t.procedure;
+
+// middlewares
+import { createIsLoggedInMiddleware } from "./user/middleware";
+
+export const loggedInProcedure = t.procedure.use(
+  createIsLoggedInMiddleware(middleware),
+);
 
 // Routes
 import { spotifyApi } from "./axios";

@@ -15,11 +15,14 @@ const App: Component = () => {
   });
 
   onMount(async () => {
-    const session = await trpc.userSessionStatus.query();
-    const [_, setUser] = userStore;
-    setUser({ oauthToken: session.oauth });
-    console.log(session)
-    if (session.active) navigate("/app", { replace: true });
+    try {
+      const session = await trpc.userSessionStatus.query();
+      const [_, setUser] = userStore;
+      setUser({ oauthToken: session.oauth });
+      if (session.oauth) navigate("/app", { replace: true });
+    } catch (e) {
+      navigate("/", { replace: true });
+    }
   });
 
   return (

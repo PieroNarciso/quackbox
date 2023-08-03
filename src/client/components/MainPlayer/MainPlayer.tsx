@@ -1,55 +1,60 @@
 import { userStore } from "@client/store";
-import { Component, createSignal, JSX, onMount } from "solid-js";
-import IconPlay from "../Icons/IconPlay";
+import IconPause from "@components/Icons/IconPause";
+import IconPlay from "@components/Icons/IconPlay";
+import { Component, createSignal, JSX, onMount, Show } from "solid-js";
 import IconSkipNext from "../Icons/IconSkipNext";
 import IconSkipPrev from "../Icons/IconSkipPrev";
+import MenuDevices from "./MenuDevices";
 
 type Props = JSX.HTMLAttributes<HTMLDivElement>;
 
 const MainPlayer: Component<Props> = (props) => {
   const [spotifyPlayer, setSpotifyPlayer] = createSignal<Spotify.Player>();
   const [user] = userStore;
+  const [isPlaying, setIsPlaying] = createSignal<boolean>(false);
 
   onMount(async () => {
-    const script = document.createElement("src") as HTMLScriptElement;
-    script.src = "https://sdk.scdn.co/spotify-player.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    window.onSpotifyWebPlaybackSDKReady = () => {
+    window.onSpotifyWebPlaybackSDKReady = async () => {
       const player = new window.Spotify.Player({
-        name: "Web Playback SDK",
+        name: "Quackbox",
         getOAuthToken: (cb) => {
           cb(user.oauthToken);
         },
-        volume: 0.5,
       });
-      console.log("player");
-      console.log(player);
-
       player.connect();
-      console.log("player");
-      console.log(player);
 
       setSpotifyPlayer(player);
-      console.log(spotifyPlayer)
+
+      player.addListener("player_state_changed", (state) => {
+        state.paused ? setIsPlaying(false) : setIsPlaying(true);
+      });
+
+      player.addListener("ready", async ({ device_id }) => {
+        console.log("Ready with Device ID", device_id);
+      });
     };
-    // const playerState = await trpc.getPlayerState.query();
-    // console.log(playerState);
   });
 
   return (
-    <div class="sticky w-full z-50 bottom-0 bg-gray-700 py-3" {...props}>
+    <div class="sticky w-full z-50 bottom-0 bg-gray-700 py-3 flex" {...props}>
       <div class="flex items-center justify-center w-full">
         <button onclick={() => spotifyPlayer()?.previousTrack()}>
           <IconSkipPrev class="h-7 w-7 fill-current text-white" />
         </button>
         <button onclick={() => spotifyPlayer()?.togglePlay()}>
-          <IconPlay class="h-7 w-7 fill-current text-white" />
+          <Show
+            when={isPlaying()}
+            fallback={<IconPlay class="h-7 w-7 fill-current text-white" />}
+          >
+            <IconPause class="h-7 w-7 fill-current text-white" />
+          </Show>
         </button>
         <button onclick={() => spotifyPlayer()?.nextTrack()}>
           <IconSkipNext class="h-7 w-7 fill-current text-white" />
         </button>
+      </div>
+      <div>
+        <MenuDevices />
       </div>
     </div>
   );

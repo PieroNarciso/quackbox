@@ -2,12 +2,12 @@ import { Component, JSX } from "solid-js";
 
 type Props = JSX.SVGElementTags["svg"];
 
-const IconPlay: Component<Props> = (props) => {
+const IconPause: Component<Props> = (props) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" {...props}>
-      <path d="M10,16.5V7.5L16,12M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+      <path d="M14,19H18V5H14M6,19H10V5H6V19Z" />
     </svg>
   );
 };
 
-export default IconPlay;
+export default IconPause;
